@@ -7,6 +7,17 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["src/*"]
-    }
-  }
+    },
+    "types": ["nativewind/types"]
+  },
+  "include": [
+    "app",
+    "components",
+    "context",
+    "firebase",
+    "utils",
+    "global.d.ts",
+    "nativewind-end.d.ts",
+    "nativewind-env.d.ts"
+  ]
 }
