@@ -1,21 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, Alert } from 'react-native';
 import { useResume } from '../context/ResumeContext';
 
 export default function StepTwo() {
   const { resumeData, setResumeData, setStep } = useResume();
-  const [summary, setSummary] = useState('');
-
-  useEffect(() => {
-    setSummary(resumeData.summary || '');
-  }, [resumeData]);
 
   const handleNext = () => {
-    if (!summary.trim()) {
+    if (!resumeData.summary.trim()) {
       Alert.alert('Validation Error', 'Please provide a summary or generate one using AI.');
       return;
     }
-    setResumeData((prev) => ({ ...prev, summary }));
     setStep(3);
   };
 
@@ -23,9 +17,8 @@ export default function StepTwo() {
     setStep(1);
   };
 
-  const handleGenerateAI = async () => {
+  const handleGenerateAI = () => {
     Alert.alert('AI Summary', 'This would generate summary using Gemini or Cohere.');
-    // TODO: Call AI API and setSummary(response);
   };
 
   return (
@@ -36,8 +29,8 @@ export default function StepTwo() {
         className="h-40 rounded border p-3 text-start"
         multiline
         placeholder="Write a brief summary about your professional background..."
-        value={summary}
-        onChangeText={setSummary}
+        value={resumeData.summary}
+        onChangeText={(text) => setResumeData((prev) => ({ ...prev, summary: text }))}
       />
 
       <TouchableOpacity className="rounded bg-indigo-500 px-4 py-2" onPress={handleGenerateAI}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useResume } from '../context/ResumeContext';
 
 export default function StepThree() {
@@ -13,13 +13,7 @@ export default function StepThree() {
     description: '',
   });
 
-  const [experienceList, setExperienceList] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (resumeData.experienceList) {
-      setExperienceList(resumeData.experienceList);
-    }
-  }, []);
+  const experienceList = resumeData.experienceList || [];
 
   const handleChange = (key: string, value: string) => {
     setExperience((prev) => ({ ...prev, [key]: value }));
@@ -31,23 +25,15 @@ export default function StepThree() {
       return;
     }
     const updated = [...experienceList, experience];
-    setExperienceList(updated);
-    setExperience({
-      jobTitle: '',
-      company: '',
-      startDate: '',
-      endDate: '',
-      description: '',
-    });
+    setResumeData((prev) => ({ ...prev, experienceList: updated }));
+    setExperience({ jobTitle: '', company: '', startDate: '', endDate: '', description: '' });
   };
 
   const handleGenerateAI = () => {
     Alert.alert('AI Description', 'This would call Cohere or Gemini API.');
-    // Later: use AI API to update experience.description
   };
 
   const handleNext = () => {
-    setResumeData((prev: any) => ({ ...prev, experienceList }));
     setStep(4);
   };
 
@@ -86,8 +72,8 @@ export default function StepThree() {
       <TextInput
         placeholder="Description"
         className="h-32 rounded border p-3 text-start"
-        value={experience.description}
         multiline
+        value={experience.description}
         onChangeText={(text) => handleChange('description', text)}
       />
 
@@ -97,7 +83,6 @@ export default function StepThree() {
 
       <Button title="Add Experience" onPress={handleAddExperience} />
 
-      {/* Experience List */}
       {experienceList.length > 0 && (
         <View className="mt-4">
           <Text className="mb-2 text-lg font-bold">Your Experience</Text>

@@ -28,12 +28,12 @@ export default function PreviewCard() {
       {resumeData.summary ? (
         <View>
           <Text className="mb-2 text-xl font-bold">Summary</Text>
-          <Text className="text-gray-700">{resumeData.summary}</Text>
+          <Text className="text-justify text-gray-700">{resumeData.summary}</Text>
         </View>
       ) : null}
 
       {/* Experience */}
-      {resumeData.experienceList?.length > 0 ? (
+      {resumeData.experienceList?.length > 0 && (
         <View>
           <Text className="mb-2 text-xl font-bold">Experience</Text>
           {resumeData.experienceList.map((exp: any, idx: number) => (
@@ -44,14 +44,14 @@ export default function PreviewCard() {
               <Text className="text-sm text-gray-600">
                 {exp.startDate || 'Start'} - {exp.endDate || 'End'}
               </Text>
-              <Text className="text-gray-700">{exp.description || ''}</Text>
+              <Text className="text-justify text-gray-700">{exp.description || ''}</Text>
             </View>
           ))}
         </View>
-      ) : null}
+      )}
 
       {/* Education */}
-      {resumeData.educationList?.length > 0 ? (
+      {resumeData.educationList?.length > 0 && (
         <View>
           <Text className="mb-2 text-xl font-bold">Education</Text>
           {resumeData.educationList.map((edu: any, idx: number) => (
@@ -60,27 +60,27 @@ export default function PreviewCard() {
               <Text className="text-sm text-gray-600">
                 {edu.institution || 'Institution'} ({edu.year || 'Year'})
               </Text>
-              <Text className="text-gray-700">{edu.description || ''}</Text>
+              <Text className="text-justify text-gray-700">{edu.description || ''}</Text>
             </View>
           ))}
         </View>
-      ) : null}
+      )}
 
       {/* Skills */}
-      {resumeData.skillsList?.length > 0 ? (
+      {resumeData.skillsList?.length > 0 && (
         <View>
           <Text className="mb-2 text-xl font-bold">Skills</Text>
-          <View className="flex-row flex-wrap gap-2">
+          <View className="flex-row flex-wrap">
             {resumeData.skillsList.map((skill: string, i: number) => (
               <Text
                 key={i}
-                className="rounded-full bg-indigo-100 px-3 py-1 text-sm text-indigo-800">
+                className="mb-2 mr-2 rounded-full bg-indigo-100 px-3 py-1 text-sm text-indigo-800">
                 {skill}
               </Text>
             ))}
           </View>
         </View>
-      ) : null}
+      )}
     </ScrollView>
   );
 }

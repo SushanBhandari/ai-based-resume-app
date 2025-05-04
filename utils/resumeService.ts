@@ -29,10 +29,9 @@ export interface Resume {
   [key: string]: any;
 }
 
-export const createResume = async (resume: Resume, userId: string): Promise<string> => {
+export const createResume = async (resume: Resume): Promise<string> => {
   const docRef = await addDoc(collection(db, 'resumes'), {
     ...resume,
-    userId,
     createdAt: serverTimestamp(), // Timestamp for sorting
   });
   return docRef.id;
@@ -50,6 +49,11 @@ export const getResumesByUser = async (userId: string): Promise<Resume[]> => {
     id: doc.id,
     ...doc.data(),
   })) as Resume[];
+};
+
+export const getLatestResumeByUser = async (userId: string): Promise<Resume | null> => {
+  const resumes = await getResumesByUser(userId);
+  return resumes.length > 0 ? resumes[0] : null;
 };
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, Alert } from 'react-native';
 import { useResume } from '../context/ResumeContext';
 
@@ -12,13 +12,7 @@ export default function StepFour() {
     description: '',
   });
 
-  const [educationList, setEducationList] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (resumeData.educationList) {
-      setEducationList(resumeData.educationList);
-    }
-  }, [resumeData]);
+  const educationList = resumeData.educationList || [];
 
   const handleChange = (field: string, value: string) => {
     setEducation((prev) => ({ ...prev, [field]: value }));
@@ -29,17 +23,12 @@ export default function StepFour() {
       Alert.alert('Degree and Institution are required');
       return;
     }
-    setEducationList((prev) => [...prev, education]);
-    setEducation({
-      degree: '',
-      institution: '',
-      year: '',
-      description: '',
-    });
+    const updated = [...educationList, education];
+    setResumeData((prev) => ({ ...prev, educationList: updated }));
+    setEducation({ degree: '', institution: '', year: '', description: '' });
   };
 
   const handleNext = () => {
-    setResumeData((prev: any) => ({ ...prev, educationList }));
     setStep(5);
   };
 
