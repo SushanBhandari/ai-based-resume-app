@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useResume } from '../context/ResumeContext';
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'expo-router';
 import { createResume } from '../utils/resumeService';
-import { getAuth } from 'firebase/auth';
 
 export default function StepFive() {
   const { resumeData, setResumeData, setStep } = useResume();
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [skill, setSkill] = useState('');
   const [skillsList, setSkillsList] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -30,7 +42,6 @@ export default function StepFive() {
       'AI Skills',
       'This would fetch skill suggestions from an AI API like Gemini or Cohere.'
     );
-    // Later: fetch from Cohere or Gemini and setSkillsList([...skillsList, ...response]);
   };
 
   const handleBack = () => {
@@ -38,6 +49,11 @@ export default function StepFive() {
   };
 
   const handleFinish = async () => {
+    if (!user || !user.id) {
+      Alert.alert('Not logged in', 'Please log in to save your resume.');
+      return;
+    }
+
     setSaving(true);
     setResumeData((prev) => ({ ...prev, skillsList }));
 
@@ -50,15 +66,15 @@ export default function StepFive() {
     };
 
     try {
-      const user = getAuth().currentUser;
-      if (!user) {
-        Alert.alert('Error', 'You must be logged in to save your resume.');
-        setSaving(false);
-        return;
-      }
-
-      const resumeId = await createResume(fullResume, user.uid);
-      Alert.alert('Success', `Resume saved successfully!`);
+      await createResume({
+        ...resumeData,
+        skillsList,
+        name: resumeData.fullName,
+        job: resumeData.jobTitle,
+        userId: user.id,
+      });
+      Alert.alert('Success', 'Your resume has been saved!');
+      router.push('/resume/preview');
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to save resume.');
     } finally {
@@ -72,14 +88,16 @@ export default function StepFive() {
 
       <TextInput
         placeholder="e.g. JavaScript, Communication"
-        className="rounded border p-3"
+        className="rounded border border-gray-300 p-3"
         value={skill}
         onChangeText={setSkill}
       />
 
-      <Button title="Add Skill" onPress={handleAddSkill} />
+      <TouchableOpacity onPress={handleAddSkill} className="rounded bg-green-500 px-4 py-3">
+        <Text className="text-center font-semibold text-white">Add Skill</Text>
+      </TouchableOpacity>
 
-      <TouchableOpacity className="rounded bg-indigo-500 px-4 py-2" onPress={handleGenerateAI}>
+      <TouchableOpacity className="rounded bg-indigo-500 px-4 py-3" onPress={handleGenerateAI}>
         <Text className="text-center font-semibold text-white">Generate Skills with AI</Text>
       </TouchableOpacity>
 
@@ -99,8 +117,20 @@ export default function StepFive() {
       )}
 
       <View className="flex-row justify-between pt-4">
-        <Button title="Back" onPress={handleBack} />
-        <Button title={saving ? 'Saving...' : 'Finish'} onPress={handleFinish} disabled={saving} />
+        <TouchableOpacity onPress={handleBack} className="w-[48%] rounded bg-gray-400 px-4 py-3">
+          <Text className="text-center font-semibold text-white">Back</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleFinish}
+          className="w-[48%] rounded bg-indigo-600 px-4 py-3"
+          disabled={saving}>
+          {saving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-center font-semibold text-white">Finish</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );

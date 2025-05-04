@@ -46,7 +46,7 @@ const defaultResumeData: ResumeData = {
   skillsList: [],
 };
 
-const ResumeContext = createContext<ResumeContextType | undefined>(undefined);
+const ResumeContext = createContext<ResumeContextType | null>(null);
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const [step, setStep] = useState(1);

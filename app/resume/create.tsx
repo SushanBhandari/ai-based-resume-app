@@ -40,10 +40,10 @@ export default function ResumeCreateScreen() {
       </View>
 
       {/* Form Steps */}
-      <ScrollView className="flex-1 p-4">
+      <View className="flex-1 p-4">
         <ResumeStepsNav />
         {renderStep()}
-      </ScrollView>
+      </View>
     </View>
   );
 }
