@@ -15,7 +15,7 @@ import {
 import { ResumeData } from '../context/ResumeContext';
 
 export interface Resume {
-  id?: string;
+  resumeId?: string;
   userId?: string;
   name?: string;
   job?: string;
@@ -47,18 +47,18 @@ export const mapToResumeData = (resume: Resume): ResumeData => ({
   template: ['classic', 'modern', 'minimal'].includes(resume.template || '')
     ? (resume.template as 'classic' | 'modern' | 'minimal')
     : 'classic',
+  resumeId: resume.id || '',
 });
 
 export const createResume = async (resume: Resume) => {
   const userId = await AsyncStorage.getItem('userId');
   if (!userId) throw new Error('User not logged in');
 
-  const docRef = await addDoc(collection(db, 'resumes'), {
-    ...resume,
-    userId,
-    createdAt: serverTimestamp(),
-  });
+  const cleanResume = { ...resume, userId, createdAt: serverTimestamp() };
 
+  delete cleanResume.resumeId; // ✅ remove undefined field
+
+  const docRef = await addDoc(collection(db, 'resumes'), cleanResume);
   return docRef.id;
 };
 

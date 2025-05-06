@@ -2,8 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useResume } from '../../context/ResumeContext';
-import { Resume } from '../../utils/resumeService';
-import { getResumesByUser, deleteResume } from '../../utils/resumeService';
+import { Resume, getResumesByUser, deleteResume, mapToResumeData } from '../../utils/resumeService';
 import { downloadResumePDF } from '../../utils/resumeExport';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,31 +28,33 @@ export default function Dashboard() {
     loadResumes();
   }, []);
 
-  const mapToResumeData = (resume: Resume) => {
-    return {
-      fullName: resume.name || '',
-      jobTitle: resume.job || '',
-      email: resume.email || '',
-      phone: resume.phone || '',
-      address: resume.address || '',
-      summary: resume.summary || '',
-      experienceList: resume.experiences || [],
-      educationList: resume.education || [],
-      skillsList: resume.skills || [],
-      themeColor: resume.themeColor || '#4F46E5',
-      template: (['classic', 'modern', 'minimal'].includes(resume.template || '')
-        ? resume.template
-        : 'classic') as 'classic' | 'modern' | 'minimal',
-    };
-  };
-
   const handlePreview = (resume: Resume) => {
     setResumeData(mapToResumeData(resume));
     router.push('/resume/preview');
   };
 
   const handleEdit = (resume: Resume) => {
-    setResumeData(mapToResumeData(resume));
+    const mapped = mapToResumeData(resume);
+    console.log('[Dashboard] Editing resume with ID:', mapped.resumeId);
+    setResumeData(mapped);
+    router.push('/resume/create');
+  };
+
+  const handleCreateNew = () => {
+    setResumeData({
+      fullName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      address: '',
+      summary: '',
+      experienceList: [],
+      educationList: [],
+      skillsList: [],
+      themeColor: '#4F46E5',
+      template: 'classic',
+      resumeId: undefined, // ✅ clear ID
+    });
     router.push('/resume/create');
   };
 
@@ -78,9 +79,7 @@ export default function Dashboard() {
     <View className="p-4">
       <Text className="mb-4 text-2xl font-bold">Your Resumes</Text>
 
-      <TouchableOpacity
-        onPress={() => router.push('/resume/create')}
-        className="mb-4 rounded bg-indigo-600 px-4 py-3">
+      <TouchableOpacity onPress={handleCreateNew} className="mb-4 rounded bg-indigo-600 px-4 py-3">
         <Text className="text-center font-semibold text-white">+ Create New Resume</Text>
       </TouchableOpacity>
 

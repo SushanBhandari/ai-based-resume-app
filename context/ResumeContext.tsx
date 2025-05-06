@@ -28,6 +28,7 @@ export interface ResumeData {
   skillsList: string[];
   themeColor?: string;
   template?: 'classic' | 'modern' | 'minimal';
+  resumeId?: string;
 }
 
 interface ResumeContextType {
@@ -38,6 +39,7 @@ interface ResumeContextType {
 }
 
 const defaultResumeData: ResumeData = {
+  resumeId: '',
   fullName: '',
   jobTitle: '',
   email: '',

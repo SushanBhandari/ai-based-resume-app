@@ -1,3 +1,4 @@
+// components/StepFive.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,7 +12,8 @@ import {
 import { ResumeData, useResume } from '../context/ResumeContext';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
-import { createResume } from '../utils/resumeService';
+import { createResume, updateResume } from '../utils/resumeService';
+import PreviewCard from './PreviewCard';
 
 export default function StepFive() {
   const { resumeData, setResumeData, setStep } = useResume();
@@ -19,12 +21,12 @@ export default function StepFive() {
   const router = useRouter();
 
   const [skill, setSkill] = useState('');
-  const [skillsList, setSkillsList] = useState<string[]>(resumeData.skillsList || []);
+  const [skillsList, setSkillsList] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setSkillsList(resumeData.skillsList || []);
-  }, []);
+  }, [resumeData.skillsList]);
 
   const handleAddSkill = () => {
     if (skill.trim() === '') {
@@ -56,14 +58,24 @@ export default function StepFive() {
         skills: skillsList,
         name: resumeData.fullName,
         job: resumeData.jobTitle,
-        userId: user.id, // ✅ ensure this is saved
+        userId: user.id,
       };
 
-      await createResume(fullResume);
+      console.log('resumeId on save:', resumeData.resumeId);
 
-      Alert.alert('Success', 'Resume saved successfully!');
+      if (resumeData.resumeId) {
+        console.log('[StepFive] Updating existing resume:', resumeData.resumeId);
+        await updateResume(resumeData.resumeId, fullResume);
+        Alert.alert('Resume Updated', 'Your resume was successfully updated.');
+      } else {
+        console.log('[StepFive] Creating new resume...');
+        await createResume(fullResume);
+        Alert.alert('Resume Created', 'Your new resume was saved.');
+      }
+
       router.push('/resume/preview');
     } catch (error: any) {
+      console.error('[StepFive] Error saving resume:', error);
       Alert.alert('Error', error.message || 'Failed to save resume.');
     } finally {
       setSaving(false);
@@ -112,9 +124,16 @@ export default function StepFive() {
           {saving ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-center font-semibold text-white">Finish</Text>
+            <Text className="text-center font-semibold text-white">
+              {resumeData.resumeId ? 'Update' : 'Finish'}
+            </Text>
           )}
         </TouchableOpacity>
+      </View>
+
+      <View className="mt-6 border-t border-gray-300 pt-6">
+        <Text className="mb-2 text-center text-xl font-semibold text-gray-700">Live Preview</Text>
+        <PreviewCard />
       </View>
     </View>
   );

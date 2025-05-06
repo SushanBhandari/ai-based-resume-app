@@ -4,6 +4,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { ResumeData } from '../context/ResumeContext';
+import { StorageAccessFramework } from 'expo-file-system';
 
 export const generateResumeHTML = (resume: ResumeData): string => {
   if (resume.template === 'modern') {
@@ -35,7 +36,6 @@ export const generateResumeHTML = (resume: ResumeData): string => {
       </body>
     </html>`;
 };
-
 export const downloadResumePDF = async (resume: ResumeData) => {
   try {
     const html = generateResumeHTML(resume);
@@ -48,29 +48,34 @@ export const downloadResumePDF = async (resume: ResumeData) => {
       return;
     }
 
-    // Copy file to a permanent path before importing
-    const fileName = uri.split('/').pop();
-    if (!FileSystem.documentDirectory) {
-      throw new Error('Document directory is not available');
-    }
-    const newPath = FileSystem.documentDirectory + fileName;
+    const fileName = `Resume_${Date.now()}.pdf`;
+
+    // ✅ Copy to FileSystem.documentDirectory first
+    const destPath = FileSystem.documentDirectory + fileName;
 
     await FileSystem.copyAsync({
       from: uri,
-      to: newPath,
+      to: destPath,
     });
 
-    const asset = await MediaLibrary.createAssetAsync(newPath);
+    // ✅ Ensure file copied properly
+    const fileInfo = await FileSystem.getInfoAsync(destPath);
+    if (!fileInfo.exists) {
+      throw new Error('Copy failed — file does not exist.');
+    }
+
+    // ✅ Now create media asset from new path
+    const asset = await MediaLibrary.createAssetAsync(destPath);
+
+    // ✅ Add to Downloads album
     await MediaLibrary.createAlbumAsync('Download', asset, false);
 
-    alert('Resume PDF saved to Downloads folder!');
-    return newPath;
-  } catch (err) {
+    alert('✅ Resume PDF saved to Downloads folder!');
+  } catch (err: any) {
     console.error('[Download Error]', err);
-    alert('Failed to download PDFs');
+    alert(`❌ Failed to download PDF: ${err.message}`);
   }
 };
-
 export const shareResumePDF = async (resume: ResumeData) => {
   try {
     const html = generateResumeHTML(resume);
