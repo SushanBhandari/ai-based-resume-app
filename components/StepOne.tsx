@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { useResume } from '../context/ResumeContext';
-import PreviewCard from './PreviewCard'; // adjust path if needed
+import { ResumeData, useResume } from '../context/ResumeContext';
+import PreviewCard from './PreviewCard';
+import Navbar from '../components/NavBar';
+import TemplateSelector from './TemplateSelector';
+import ColorPicker from 'react-native-wheel-color-picker';
 
 export default function StepOne() {
+  const router = useRouter();
   const { resumeData, setResumeData, setStep } = useResume();
 
   const [form, setForm] = useState({
@@ -14,6 +19,8 @@ export default function StepOne() {
     email: '',
   });
 
+  const [color, setColor] = useState(resumeData.themeColor || '#4F46E5');
+
   useEffect(() => {
     setForm((prev) => ({ ...prev, ...resumeData }));
   }, [resumeData]);
@@ -21,7 +28,12 @@ export default function StepOne() {
   const handleChange = (field: string, value: string) => {
     const updated = { ...form, [field]: value };
     setForm(updated);
-    setResumeData((prev) => ({ ...prev, ...updated }));
+    setResumeData((prev: ResumeData) => ({ ...prev, ...updated }));
+  };
+
+  const handleColorChange = (selectedColor: string) => {
+    setColor(selectedColor);
+    setResumeData((prev: ResumeData) => ({ ...prev, themeColor: selectedColor }));
   };
 
   const handleNext = () => {
@@ -31,7 +43,6 @@ export default function StepOne() {
   return (
     <ScrollView className="mt-6 space-y-4 px-4 pb-12">
       <Text className="text-2xl font-bold">Personal Information</Text>
-
       <TextInput
         className="rounded border border-gray-400 p-3"
         placeholder="Full Name"
@@ -65,9 +76,31 @@ export default function StepOne() {
         onChangeText={(text) => handleChange('email', text)}
       />
 
-      <TouchableOpacity onPress={handleNext} className="mt-4 rounded bg-yellow-400 px-6 py-3">
-        <Text className="text-center text-lg font-semibold text-black">Next</Text>
-      </TouchableOpacity>
+      <View className="mt-6">
+        <Text className="mb-2 text-lg font-semibold">Choose Theme Color</Text>
+        <ColorPicker
+          color={color}
+          onColorChange={handleColorChange}
+          thumbSize={30}
+          sliderSize={30}
+          noSnap={true}
+          row={false}
+          swatches={false}
+        />
+      </View>
+
+      <TemplateSelector />
+
+      <View className="mt-4 flex-row justify-between">
+        <TouchableOpacity
+          onPress={() => router.push('/resume/dashboard')}
+          className="w-[48%] rounded bg-gray-300 py-3">
+          <Text className="text-center text-lg font-semibold text-black">Dashboard</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleNext} className="w-[48%] rounded bg-yellow-400 py-3">
+          <Text className="text-center text-lg font-semibold text-black">Next</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* 👇 Live Preview Resume */}
       <View className="mt-6 border-t border-gray-300 pt-6">

@@ -1,21 +1,38 @@
-// app/index.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from '../components/LoginModal';
 import LandingCard from '../components/LandingCard';
+import { getResumesByUser } from '../utils/resumeService'; // ⬅️ Add this import
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
   const router = useRouter();
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
-  const handleStart = () => {
-    if (user) {
-      router.push('/resume/create');
-    } else {
+  const handleStart = async () => {
+    if (!user) {
       setShowLogin(true);
+      return;
+    }
+
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        setShowLogin(true);
+        return;
+      }
+
+      const resumes = await getResumesByUser(userId);
+      if (resumes.length > 0) {
+        router.push('/resume/dashboard');
+      } else {
+        router.push('/resume/create');
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Something went wrong while checking resumes.');
     }
   };
 
@@ -90,12 +107,7 @@ export default function Index() {
         </Text>
       </ScrollView>
 
-      {/* Login/Signup Popup Modal */}
-      <LoginModal
-        visible={showLogin}
-        onClose={() => setShowLogin(false)}
-        onSuccess={() => router.push('/resume/create')}
-      />
+      <LoginModal visible={showLogin} onClose={() => setShowLogin(false)} onSuccess={handleStart} />
     </>
   );
 }

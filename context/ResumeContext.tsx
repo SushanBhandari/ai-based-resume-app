@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface Experience {
+export interface Experience {
   jobTitle: string;
   company: string;
   startDate: string;
@@ -8,14 +9,14 @@ interface Experience {
   description: string;
 }
 
-interface Education {
+export interface Education {
   degree: string;
   institution: string;
   year: string;
   description: string;
 }
 
-interface ResumeData {
+export interface ResumeData {
   fullName: string;
   jobTitle: string;
   email: string;
@@ -25,6 +26,8 @@ interface ResumeData {
   experienceList: Experience[];
   educationList: Education[];
   skillsList: string[];
+  themeColor?: string;
+  template?: 'classic' | 'modern' | 'minimal';
 }
 
 interface ResumeContextType {
@@ -44,13 +47,29 @@ const defaultResumeData: ResumeData = {
   experienceList: [],
   educationList: [],
   skillsList: [],
+  template: 'classic',
+  themeColor: '#4F46E5',
 };
 
-const ResumeContext = createContext<ResumeContextType | null>(null);
+const ResumeContext = createContext<any>(null);
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const [step, setStep] = useState(1);
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
+
+  // ✅ Load resume from storage
+  useEffect(() => {
+    const load = async () => {
+      const saved = await AsyncStorage.getItem('resumeData');
+      if (saved) setResumeData(JSON.parse(saved));
+    };
+    load();
+  }, []);
+
+  // ✅ Save resume to storage on every change
+  useEffect(() => {
+    AsyncStorage.setItem('resumeData', JSON.stringify(resumeData));
+  }, [resumeData]);
 
   return (
     <ResumeContext.Provider value={{ step, setStep, resumeData, setResumeData }}>
@@ -59,7 +78,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useResume = (): ResumeContextType => {
+export const useResume = () => {
   const context = useContext(ResumeContext);
   if (!context) throw new Error('useResume must be used within ResumeProvider');
   return context;
