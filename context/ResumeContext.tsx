@@ -59,7 +59,6 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const [step, setStep] = useState(1);
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
 
-  // ✅ Load resume from storage
   useEffect(() => {
     const load = async () => {
       const saved = await AsyncStorage.getItem('resumeData');
@@ -68,7 +67,6 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     load();
   }, []);
 
-  // ✅ Save resume to storage on every change
   useEffect(() => {
     AsyncStorage.setItem('resumeData', JSON.stringify(resumeData));
   }, [resumeData]);

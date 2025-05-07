@@ -53,7 +53,7 @@ export default function Dashboard() {
       skillsList: [],
       themeColor: '#4F46E5',
       template: 'classic',
-      resumeId: undefined, // ✅ clear ID
+      resumeId: undefined,
     });
     router.push('/resume/create');
   };

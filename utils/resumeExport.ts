@@ -4,38 +4,54 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { ResumeData } from '../context/ResumeContext';
-import { StorageAccessFramework } from 'expo-file-system';
 
 export const generateResumeHTML = (resume: ResumeData): string => {
-  if (resume.template === 'modern') {
-    return `
-      <html>
-        <body style="font-family: Arial; padding: 20px;">
-          <h1 style="color: teal;">${resume.fullName}</h1>
-          ...
-        </body>
-      </html>`;
-  }
-
-  if (resume.template === 'minimal') {
-    return `
-      <html>
-        <body style="font-family: sans-serif; font-size: 14px;">
-          <h2>${resume.fullName}</h2>
-          ...
-        </body>
-      </html>`;
-  }
-
-  // classic template (default)
   return `
     <html>
-      <body>
-        <h1>${resume.fullName}</h1>
-        ...
+      <head>
+        <meta charset="utf-8" />
+        <title>Resume</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+        <h1 style="color: ${resume.themeColor};">${resume.fullName}</h1>
+        <h2>${resume.jobTitle}</h2>
+        <p>${resume.email} | ${resume.phone} | ${resume.address}</p>
+
+        <h3>Summary</h3>
+        <p>${resume.summary}</p>
+
+        <h3>Experience</h3>
+        ${resume.experienceList
+          .map(
+            (exp) => `
+            <div>
+              <strong>${exp.jobTitle}</strong> at ${exp.company}<br/>
+              <small>${exp.startDate} – ${exp.endDate}</small>
+              <p>${exp.description}</p>
+            </div>
+          `
+          )
+          .join('')}
+
+        <h3>Education</h3>
+        ${resume.educationList
+          .map(
+            (edu) => `
+            <div>
+              <strong>${edu.degree}</strong> - ${edu.institution} (${edu.year})
+              <p>${edu.description}</p>
+            </div>
+          `
+          )
+          .join('')}
+
+        <h3>Skills</h3>
+        <p>${resume.skillsList.join(', ')}</p>
       </body>
-    </html>`;
+    </html>
+  `;
 };
+
 export const downloadResumePDF = async (resume: ResumeData) => {
   try {
     const html = generateResumeHTML(resume);
@@ -44,55 +60,40 @@ export const downloadResumePDF = async (resume: ResumeData) => {
 
     const { granted } = await MediaLibrary.requestPermissionsAsync();
     if (!granted) {
-      alert('Permission to access media library denied.');
+      alert('Permission to access media library was denied.');
       return;
     }
 
-    const fileName = `Resume_${Date.now()}.pdf`;
+    const fileName = uri.split('/').pop();
+    const destPath = `${FileSystem.cacheDirectory}${fileName}`;
 
-    // ✅ Copy to FileSystem.documentDirectory first
-    const destPath = FileSystem.documentDirectory + fileName;
+    await FileSystem.copyAsync({ from: uri, to: destPath });
 
-    await FileSystem.copyAsync({
-      from: uri,
-      to: destPath,
-    });
-
-    // ✅ Ensure file copied properly
-    const fileInfo = await FileSystem.getInfoAsync(destPath);
-    if (!fileInfo.exists) {
-      throw new Error('Copy failed — file does not exist.');
-    }
-
-    // ✅ Now create media asset from new path
     const asset = await MediaLibrary.createAssetAsync(destPath);
-
-    // ✅ Add to Downloads album
     await MediaLibrary.createAlbumAsync('Download', asset, false);
 
-    alert('✅ Resume PDF saved to Downloads folder!');
+    alert('✅ Resume saved to Downloads folder!');
+    return destPath;
   } catch (err: any) {
     console.error('[Download Error]', err);
-    alert(`❌ Failed to download PDF: ${err.message}`);
+    alert(`Failed to download PDF: ${err.message || err}`);
   }
 };
+
 export const shareResumePDF = async (resume: ResumeData) => {
   try {
     const html = generateResumeHTML(resume);
     const { uri } = await Print.printToFileAsync({ html });
 
-    console.log('[Share] Generated PDF at:', uri);
-
-    const isAvailable = await Sharing.isAvailableAsync();
-    if (!isAvailable) {
-      alert('Sharing is not supported on this device');
+    if (!(await Sharing.isAvailableAsync())) {
+      alert('Sharing is not available on this device.');
       return;
     }
 
     await Sharing.shareAsync(uri);
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Share Error]', err);
-    alert('Failed to share resume');
+    alert(`Failed to share PDF: ${err.message || err}`);
   }
 };
 
@@ -100,8 +101,8 @@ export const printResume = async (resume: ResumeData) => {
   try {
     const html = generateResumeHTML(resume);
     await Print.printAsync({ html });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Print Error]', err);
-    alert('Failed to print resume');
+    alert(`Failed to print PDF: ${err.message || err}`);
   }
 };

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from '../components/LoginModal';
 import LandingCard from '../components/LandingCard';
-import { getResumesByUser } from '../utils/resumeService'; // ⬅️ Add this import
+import { getResumesByUser } from '../utils/resumeService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Index() {
@@ -92,7 +92,7 @@ export default function Index() {
             Ready to Create Your Resume?
           </Text>
           <Text className="mb-6 text-center text-white">
-            Start building your resume in under 2 minutes. It’s free.
+            Start building your resume in under 2 minutes. It's free.
           </Text>
           <TouchableOpacity
             onPress={handleStart}

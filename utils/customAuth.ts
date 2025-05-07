@@ -14,14 +14,13 @@ export const signUpUser = async (email: string, password: string, name: string) 
   // Create user
   const user = {
     email,
-    password, // 🔐 For now, store raw (later hash it)
+    password,
     name,
     createdAt: serverTimestamp(),
   };
 
   const docRef = await addDoc(usersRef, user);
 
-  // Save session
   await AsyncStorage.setItem('userId', docRef.id);
   return { id: docRef.id, ...user };
 };

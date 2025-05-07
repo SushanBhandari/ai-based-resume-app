@@ -32,7 +32,6 @@ export interface Resume {
   [key: string]: any;
 }
 
-// 🔁 Map Firestore Resume ➝ ResumeData format
 export const mapToResumeData = (resume: Resume): ResumeData => ({
   fullName: resume.name || '',
   jobTitle: resume.job || '',
@@ -56,7 +55,7 @@ export const createResume = async (resume: Resume) => {
 
   const cleanResume = { ...resume, userId, createdAt: serverTimestamp() };
 
-  delete cleanResume.resumeId; // ✅ remove undefined field
+  delete cleanResume.resumeId;
 
   const docRef = await addDoc(collection(db, 'resumes'), cleanResume);
   return docRef.id;

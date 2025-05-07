@@ -9,7 +9,7 @@ export const generateCohereSummary = async (prompt: string): Promise<string> => 
     const response = await axios.post(
       'https://api.cohere.ai/v1/generate',
       {
-        model: 'command', // you can also try 'command-light' for faster responses
+        model: 'command',
         prompt,
         max_tokens: 200,
         temperature: 0.7,
