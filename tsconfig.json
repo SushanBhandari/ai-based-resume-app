@@ -3,12 +3,16 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "react-jsx",
-
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "~/*": ["src/*"]
     },
-    "types": ["nativewind/types"]
+    "types": ["nativewind/types", "expo", "react", "react-native"]
   },
   "include": [
     "app",
@@ -18,6 +22,8 @@
     "utils",
     "global.d.ts",
     "nativewind-end.d.ts",
-    "nativewind-env.d.ts"
-  ]
+    "nativewind-env.d.ts",
+    "App.tsx"
+  ],
+  "exclude": ["node_modules"]
 }
