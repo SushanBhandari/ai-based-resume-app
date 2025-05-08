@@ -1,4 +1,3 @@
-// components/StepFive.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -14,6 +13,8 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { createResume, updateResume } from '../utils/resumeService';
 import PreviewCard from './PreviewCard';
+import { generateCohereSummary } from '../utils/cohere';
+import type { Experience } from '../context/ResumeContext';
 
 export default function StepFive() {
   const { resumeData, setResumeData, setStep } = useResume();
@@ -23,6 +24,7 @@ export default function StepFive() {
   const [skill, setSkill] = useState('');
   const [skillsList, setSkillsList] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     setSkillsList(resumeData.skillsList || []);
@@ -37,6 +39,51 @@ export default function StepFive() {
     setSkillsList(updatedSkills);
     setResumeData((prev: ResumeData) => ({ ...prev, skillsList: updatedSkills }));
     setSkill('');
+  };
+
+  const handleGenerateSkills = async () => {
+    const { jobTitle, summary, experienceList } = resumeData;
+
+    if (!jobTitle && experienceList.length === 0) {
+      Alert.alert('Missing Info', 'Please enter job title or experience first.');
+      return;
+    }
+
+    setGenerating(true);
+
+    const experienceText = experienceList
+      .map((e: Experience) => `${e.jobTitle} at ${e.company}`)
+      .join(', ');
+    const prompt = `Based on the job title "${jobTitle}" and experience like ${experienceText}, list 6-8 relevant professional skills. Return as a comma-separated list.`;
+
+    try {
+      const aiResult = await generateCohereSummary(prompt);
+
+      if (!aiResult || aiResult.toLowerCase().includes('error')) {
+        Alert.alert('Generation Failed', 'Could not generate skills.');
+        return;
+      }
+
+      const generatedSkills = aiResult
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s && !skillsList.includes(s));
+
+      const updatedSkills = [...skillsList, ...generatedSkills];
+
+      setSkillsList(updatedSkills);
+      setResumeData((prev: ResumeData) => ({
+        ...prev,
+        skillsList: updatedSkills,
+      }));
+
+      Alert.alert('✅ Skills Added', `Generated ${generatedSkills.length} new skills.`);
+    } catch (err) {
+      console.error('AI Skill Generation Error:', err);
+      Alert.alert('Error', 'AI skill generation failed.');
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleBack = () => {
@@ -61,15 +108,12 @@ export default function StepFive() {
         userId: user.id,
       };
 
-      console.log('resumeId on save:', resumeData.resumeId);
-
       if (resumeData.resumeId) {
-        console.log('[StepFive] Updating existing resume:', resumeData.resumeId);
         await updateResume(resumeData.resumeId, fullResume);
         Alert.alert('Resume Updated', 'Your resume was successfully updated.');
       } else {
-        console.log('[StepFive] Creating new resume...');
-        await createResume(fullResume);
+        const newId = await createResume(fullResume);
+        setResumeData((prev: ResumeData) => ({ ...prev, resumeId: newId }));
         Alert.alert('Resume Created', 'Your new resume was saved.');
       }
 
@@ -95,6 +139,14 @@ export default function StepFive() {
 
       <TouchableOpacity onPress={handleAddSkill} className="rounded bg-green-500 px-4 py-3">
         <Text className="text-center font-semibold text-white">Add Skill</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={handleGenerateSkills} className="rounded bg-yellow-400 px-4 py-3">
+        {generating ? (
+          <ActivityIndicator color="#000" />
+        ) : (
+          <Text className="text-center font-semibold text-black">Generate Required Skills</Text>
+        )}
       </TouchableOpacity>
 
       {skillsList.length > 0 && (

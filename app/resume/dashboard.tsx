@@ -1,14 +1,14 @@
-// app/resume/dashboard.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useResume } from '../../context/ResumeContext';
 import { Resume, getResumesByUser, deleteResume, mapToResumeData } from '../../utils/resumeService';
-import { downloadResumePDF } from '../../utils/resumeExport';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { logout } = useAuth();
   const { setResumeData } = useResume();
   const [resumes, setResumes] = useState<Resume[]>([]);
 
@@ -35,7 +35,6 @@ export default function Dashboard() {
 
   const handleEdit = (resume: Resume) => {
     const mapped = mapToResumeData(resume);
-    console.log('[Dashboard] Editing resume with ID:', mapped.resumeId);
     setResumeData(mapped);
     router.push('/resume/create');
   };
@@ -58,14 +57,6 @@ export default function Dashboard() {
     router.push('/resume/create');
   };
 
-  const handleDownload = async (resume: Resume) => {
-    try {
-      await downloadResumePDF(mapToResumeData(resume));
-    } catch (err: any) {
-      Alert.alert('Download failed', err.message);
-    }
-  };
-
   const handleDelete = async (resumeId: string) => {
     try {
       await deleteResume(resumeId);
@@ -75,9 +66,19 @@ export default function Dashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/');
+  };
+
   return (
     <View className="p-4">
-      <Text className="mb-4 text-2xl font-bold">Your Resumes</Text>
+      <View className="mb-4 flex-row items-center justify-between">
+        <Text className="text-2xl font-bold">Your Resumes</Text>
+        <TouchableOpacity onPress={handleLogout}>
+          <Text className="font-semibold text-red-500">Logout</Text>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity onPress={handleCreateNew} className="mb-4 rounded bg-indigo-600 px-4 py-3">
         <Text className="text-center font-semibold text-white">+ Create New Resume</Text>
@@ -96,9 +97,6 @@ export default function Dashboard() {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleEdit(item)}>
                 <Text className="text-yellow-600">Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDownload(item)}>
-                <Text className="text-green-500">Download</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDelete(item.id!)}>
                 <Text className="text-red-500">Delete</Text>

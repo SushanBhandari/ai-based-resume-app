@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, Alert } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { Resume } from 'utils/resumeService';
 
 export default function StepThree() {
   const { resumeData, setResumeData, setStep } = useResume();
+  const [experienceList, setExperienceList] = useState(resumeData.experienceList || []);
   const [experience, setExperience] = useState({
     jobTitle: '',
     company: '',
@@ -17,7 +18,9 @@ export default function StepThree() {
     description: '',
   });
 
-  const experienceList = resumeData.experienceList || [];
+  useEffect(() => {
+    setExperienceList(resumeData.experienceList || []);
+  }, []);
 
   const handleChange = (key: string, value: string) => {
     setExperience((prev) => ({ ...prev, [key]: value }));
@@ -29,6 +32,7 @@ export default function StepThree() {
       return;
     }
     const updated = [...experienceList, experience];
+    setExperienceList(updated);
     setResumeData((prev: ResumeData) => ({ ...prev, experienceList: updated }));
     setExperience({ jobTitle: '', company: '', startDate: '', endDate: '', description: '' });
   };

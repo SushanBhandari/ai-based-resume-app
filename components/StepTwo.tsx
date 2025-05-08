@@ -21,7 +21,7 @@ export default function StepTwo() {
   };
 
   const handleGenerateAI = async () => {
-    const prompt = `Generate a professional summary for someone named ${resumeData.fullName} who works as a ${resumeData.jobTitle}.`;
+    const prompt = `Generate a professional summary for someone named ${resumeData.fullName} who works as a ${resumeData.jobTitle}. in a single paragraph about 100 words`;
     const generated = await generateCohereSummary(prompt);
     setResumeData((prev: ResumeData) => ({ ...prev, summary: generated }));
   };

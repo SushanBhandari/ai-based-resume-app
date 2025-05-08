@@ -16,7 +16,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 
 export default function StepFour() {
   const { resumeData, setResumeData, setStep } = useResume();
-
+  const [educationList, setEducationList] = useState(resumeData.educationList || []);
   const [education, setEducation] = useState({
     degree: '',
     institution: '',
@@ -24,7 +24,9 @@ export default function StepFour() {
     description: '',
   });
 
-  const educationList = resumeData.educationList || [];
+  useEffect(() => {
+    setEducationList(resumeData.educationList || []);
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     setEducation((prev) => ({ ...prev, [field]: value }));
@@ -36,6 +38,7 @@ export default function StepFour() {
       return;
     }
     const updated = [...educationList, education];
+    setEducationList(updated);
     setResumeData((prev: ResumeData) => ({
       ...prev,
       educationList: updated,
