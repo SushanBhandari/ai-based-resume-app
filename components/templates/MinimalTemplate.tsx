@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { ResumeData } from '../../context/ResumeContext';
 
-export default function CompactTemplate({ resume }: { resume: ResumeData }) {
+export default function MinimalTemplate({ resume }: { resume: ResumeData }) {
   const color = resume.themeColor || '#10B981'; // e.g., green
 
   return (

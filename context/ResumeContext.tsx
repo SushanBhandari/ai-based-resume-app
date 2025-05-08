@@ -27,7 +27,7 @@ export interface ResumeData {
   educationList: Education[];
   skillsList: string[];
   themeColor?: string;
-  template?: 'classic' | 'modern' | 'minimal';
+  template?: 'classic' | 'modern' | 'compact';
   resumeId?: string;
 }
 

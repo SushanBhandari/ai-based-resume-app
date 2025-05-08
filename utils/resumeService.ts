@@ -43,8 +43,8 @@ export const mapToResumeData = (resume: Resume): ResumeData => ({
   educationList: resume.education || [],
   skillsList: resume.skills || [],
   themeColor: resume.themeColor || '#4F46E5',
-  template: ['classic', 'modern', 'minimal'].includes(resume.template || '')
-    ? (resume.template as 'classic' | 'modern' | 'minimal')
+  template: ['classic', 'modern', 'compact'].includes(resume.template || '')
+    ? (resume.template as 'classic' | 'modern' | 'compact')
     : 'classic',
   resumeId: resume.id || '',
 });
