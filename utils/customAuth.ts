@@ -1,17 +1,24 @@
 import { db } from '../firebase/config';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  addDoc,
+  doc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const usersRef = collection(db, 'users');
 
 export const signUpUser = async (email: string, password: string, name: string) => {
-  // Check if user exists
   const q = query(usersRef, where('email', '==', email));
   const existing = await getDocs(q);
 
   if (!existing.empty) throw new Error('User already exists');
 
-  // Create user
   const user = {
     email,
     password,
@@ -20,8 +27,8 @@ export const signUpUser = async (email: string, password: string, name: string) 
   };
 
   const docRef = await addDoc(usersRef, user);
-
   await AsyncStorage.setItem('userId', docRef.id);
+
   return { id: docRef.id, ...user };
 };
 
@@ -43,5 +50,9 @@ export const logoutUser = async () => {
 export const getCurrentUser = async () => {
   const id = await AsyncStorage.getItem('userId');
   if (!id) return null;
-  return id;
+
+  const userDoc = await getDoc(doc(db, 'users', id));
+  if (!userDoc.exists()) return null;
+
+  return { id: userDoc.id, ...userDoc.data() };
 };

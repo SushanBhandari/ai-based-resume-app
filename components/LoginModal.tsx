@@ -50,7 +50,9 @@ export default function LoginModal({
 
       resetForm();
       onClose();
-      onSuccess();
+
+      // ✅ Fix: allow AuthContext.user to update before onSuccess
+      setTimeout(() => onSuccess(), 200);
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Something went wrong.');
     } finally {

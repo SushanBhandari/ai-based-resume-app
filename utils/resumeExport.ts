@@ -1,4 +1,3 @@
-// utils/resumeExport.ts
 import * as Print from 'expo-print';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
@@ -11,30 +11,47 @@ export default function Index() {
   const router = useRouter();
   const { user } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
+  const [authFlowComplete, setAuthFlowComplete] = useState(false);
+  const triggerNavigation = () => {
+    console.log('✅ triggerNavigation called');
+    setAuthFlowComplete(true);
+  };
 
-  const handleStart = async () => {
+  const handleStart = () => {
     if (!user) {
+      console.log('🟠 Showing login modal');
       setShowLogin(true);
-      return;
-    }
-
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
-        setShowLogin(true);
-        return;
-      }
-
-      const resumes = await getResumesByUser(userId);
-      if (resumes.length > 0) {
-        router.push('/resume/dashboard');
-      } else {
-        router.push('/resume/create');
-      }
-    } catch (err) {
-      Alert.alert('Error', 'Something went wrong while checking resumes.');
+    } else {
+      triggerNavigation();
     }
   };
+
+  useEffect(() => {
+    const proceedAfterAuth = async () => {
+      const userId = await AsyncStorage.getItem('userId');
+      console.log('👤 user:', user);
+      console.log('📦 userId from storage:', userId);
+      console.log('🚦 authFlowComplete:', authFlowComplete);
+
+      if (!user || !userId || !authFlowComplete) return;
+
+      try {
+        const resumes = await getResumesByUser(userId);
+        if (resumes.length > 0) {
+          router.push('/resume/dashboard');
+        } else {
+          router.push('/resume/create');
+        }
+      } catch (err) {
+        console.error('❌ Error while checking resumes:', err);
+        Alert.alert('Error', 'Something went wrong while checking resumes.');
+      } finally {
+        setAuthFlowComplete(false);
+      }
+    };
+
+    proceedAfterAuth();
+  }, [user, authFlowComplete]);
 
   return (
     <>
@@ -101,13 +118,16 @@ export default function Index() {
           </TouchableOpacity>
         </View>
 
-        {/* Footer */}
         <Text className="py-6 text-center text-xs text-gray-400">
           &copy; {new Date().getFullYear()} ResumeGen AI. All rights reserved.
         </Text>
       </ScrollView>
 
-      <LoginModal visible={showLogin} onClose={() => setShowLogin(false)} onSuccess={handleStart} />
+      <LoginModal
+        visible={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSuccess={triggerNavigation}
+      />
     </>
   );
 }
