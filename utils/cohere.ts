@@ -1,13 +1,12 @@
 import axios from 'axios';
 
-// ✅ Load API key securely (Expo/React Native compatible)
-const COHERE_API_KEY = '5uPlczRoxWtj6YVKeknF8SPeYODNKJlRXtDuLIVG';
+const COHERE_API_KEY = process.env.EXPO_COHERE_API_KEY;
 const COHERE_URL = 'https://api.cohere.ai/v1/generate';
 
 export const generateCohereSummary = async (prompt: string): Promise<string> => {
   try {
     const response = await axios.post(
-      'https://api.cohere.ai/v1/generate',
+      COHERE_URL,
       {
         model: 'command',
         prompt,
