@@ -1,10 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, Alert } from 'react-native';
-import { useResume } from '../context/ResumeContext';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  FlatList,
+  Alert,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import { ResumeData, useResume } from '../context/ResumeContext';
+import { Ionicons } from '@expo/vector-icons';
+import PreviewCard from './PreviewCard';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function StepFour() {
   const { resumeData, setResumeData, setStep } = useResume();
-
+  const [educationList, setEducationList] = useState(resumeData.educationList || []);
   const [education, setEducation] = useState({
     degree: '',
     institution: '',
@@ -12,13 +24,9 @@ export default function StepFour() {
     description: '',
   });
 
-  const [educationList, setEducationList] = useState<any[]>([]);
-
   useEffect(() => {
-    if (resumeData.educationList) {
-      setEducationList(resumeData.educationList);
-    }
-  }, [resumeData]);
+    setEducationList(resumeData.educationList || []);
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     setEducation((prev) => ({ ...prev, [field]: value }));
@@ -29,26 +37,32 @@ export default function StepFour() {
       Alert.alert('Degree and Institution are required');
       return;
     }
-    setEducationList((prev) => [...prev, education]);
-    setEducation({
-      degree: '',
-      institution: '',
-      year: '',
-      description: '',
-    });
+    const updated = [...educationList, education];
+    setEducationList(updated);
+    setResumeData((prev: ResumeData) => ({
+      ...prev,
+      educationList: updated,
+    }));
+    setEducation({ degree: '', institution: '', year: '', description: '' });
   };
 
-  const handleNext = () => {
-    setResumeData((prev: any) => ({ ...prev, educationList }));
-    setStep(5);
+  const handleDeleteEducation = (index: number) => {
+    const updated = educationList.filter((_: any, idx: number) => idx !== index);
+    setResumeData((prev: ResumeData) => ({
+      ...prev,
+      educationList: updated,
+    }));
   };
 
-  const handleBack = () => {
-    setStep(3);
-  };
+  const handleNext = () => setStep(5);
+  const handleBack = () => setStep(3);
 
   return (
-    <View className="mt-6 space-y-4 px-4">
+    <KeyboardAwareScrollView
+      enableOnAndroid
+      keyboardShouldPersistTaps="handled"
+      extraScrollHeight={100}
+      className="space-y-4 px-4 pb-24 pt-6">
       <Text className="text-2xl font-bold">Education</Text>
 
       <TextInput
@@ -82,19 +96,20 @@ export default function StepFour() {
       {educationList.length > 0 && (
         <View className="mt-4">
           <Text className="mb-2 text-lg font-bold">Your Education</Text>
-          <FlatList
-            data={educationList}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View className="mb-2 rounded border bg-gray-100 p-3">
-                <Text className="font-semibold">{item.degree}</Text>
-                <Text className="text-sm text-gray-600">
-                  {item.institution} ({item.year})
-                </Text>
-                <Text className="text-sm text-gray-600">{item.description}</Text>
-              </View>
-            )}
-          />
+          {educationList.map((item: any, index: number) => (
+            <View key={index} className="relative mb-2 rounded border bg-gray-100 p-3">
+              <Text className="font-semibold">{item.degree}</Text>
+              <Text className="text-sm text-gray-600">
+                {item.institution} ({item.year})
+              </Text>
+              <Text className="text-sm text-gray-600">{item.description}</Text>
+              <TouchableOpacity
+                onPress={() => handleDeleteEducation(index)}
+                className="absolute right-2 top-2">
+                <Ionicons name="trash-outline" size={20} color="red" />
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
       )}
 
@@ -102,6 +117,10 @@ export default function StepFour() {
         <Button title="Back" onPress={handleBack} />
         <Button title="Next" onPress={handleNext} />
       </View>
-    </View>
+      <View className="mt-6 border-t border-gray-300 pt-6">
+        <Text className="mb-2 text-center text-xl font-semibold text-gray-700">Live Preview</Text>
+        <PreviewCard />
+      </View>
+    </KeyboardAwareScrollView>
   );
 }
